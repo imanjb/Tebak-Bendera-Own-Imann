@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Iman Tebakan Bendera</title>
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+background:linear-gradient(#9be7ff,#e8faff);
+}
+
+#game{
+background:white;
+width:420px;
+margin:40px auto;
+padding:20px;
+border-radius:15px;
+box-shadow:0 0 10px gray;
+}
+
+button{
+padding:10px 18px;
+margin:6px;
+font-size:16px;
+border:none;
+border-radius:10px;
+background:#4CAF50;
+color:white;
+cursor:pointer;
+}
+
+input{
+padding:8px;
+border-radius:8px;
+border:1px solid gray;
+}
+
+img{
+width:220px;
+margin:10px;
+transition:0.3s;
+}
+
+#level{
+font-size:18px;
+margin:10px;
+}
+</style>
+
+<script>
+
+let audioCtx;
+let musicTimer;
+let namaPlayer="";
+
+function startMusic(){
+
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+let notes=[262,294,330,349,392,440];
+let i=0;
+
+musicTimer=setInterval(()=>{
+
+let osc=audioCtx.createOscillator();
+let gain=audioCtx.createGain();
+
+osc.type="sine";
+osc.frequency.value=notes[i%notes.length];
+
+gain.gain.value=0.03;
+
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+
+osc.start();
+osc.stop(audioCtx.currentTime+0.3);
+
+i++;
+
+},400);
+
+}
+
+function clickSound(){
+
+if(!audioCtx) return;
+
+let osc=audioCtx.createOscillator();
+let gain=audioCtx.createGain();
+
+osc.frequency.value=700;
+gain.gain.value=0.1;
+
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+
+osc.start();
+osc.stop(audioCtx.currentTime+0.1);
+
+}
+
+function bicara(teks){
+
+let u=new SpeechSynthesisUtterance(teks);
+u.lang="id-ID";
+speechSynthesis.speak(u);
+
+}
+
+let soal=[
+
+{g:"https://flagcdn.com/w320/id.png",j:"Indonesia",o:["Indonesia","Malaysia","Singapura"]},
+{g:"https://flagcdn.com/w320/my.png",j:"Malaysia",o:["Thailand","Malaysia","Vietnam"]},
+{g:"https://flagcdn.com/w320/jp.png",j:"Jepang",o:["China","Jepang","Korea"]},
+{g:"https://flagcdn.com/w320/kr.png",j:"Korea Selatan",o:["Korea Selatan","Jepang","China"]},
+{g:"https://flagcdn.com/w320/us.png",j:"Amerika",o:["Amerika","Inggris","Perancis"]},
+{g:"https://flagcdn.com/w320/fr.png",j:"Perancis",o:["Italia","Belanda","Perancis"]},
+{g:"https://flagcdn.com/w320/de.png",j:"Jerman",o:["Jerman","Belgia","Austria"]},
+{g:"https://flagcdn.com/w320/br.png",j:"Brazil",o:["Brazil","Argentina","Chile"]},
+{g:"https://flagcdn.com/w320/ar.png",j:"Argentina",o:["Uruguay","Argentina","Brazil"]},
+{g:"https://flagcdn.com/w320/ca.png",j:"Kanada",o:["Kanada","Swiss","Denmark"]},
+
+{g:"https://flagcdn.com/w320/es.png",j:"Spanyol",o:["Portugal","Spanyol","Italia"]},
+{g:"https://flagcdn.com/w320/it.png",j:"Italia",o:["Italia","Hungaria","Irlandia"]},
+{g:"https://flagcdn.com/w320/nl.png",j:"Belanda",o:["Luxembourg","Belanda","Rusia"]},
+{g:"https://flagcdn.com/w320/tr.png",j:"Turki",o:["Turki","Pakistan","Tunisia"]},
+{g:"https://flagcdn.com/w320/sa.png",j:"Arab Saudi",o:["Iran","Arab Saudi","Irak"]},
+{g:"https://flagcdn.com/w320/in.png",j:"India",o:["India","Nepal","Bangladesh"]},
+{g:"https://flagcdn.com/w320/th.png",j:"Thailand",o:["Thailand","Laos","Vietnam"]},
+{g:"https://flagcdn.com/w320/vn.png",j:"Vietnam",o:["Vietnam","China","Kamboja"]},
+{g:"https://flagcdn.com/w320/ph.png",j:"Filipina",o:["Filipina","Indonesia","Malaysia"]},
+{g:"https://flagcdn.com/w320/au.png",j:"Australia",o:["Australia","Selandia Baru","Kanada"]}
+
+];
+
+let nomor=0;
+let benar=0;
+
+function startGame(){
+
+namaPlayer=document.getElementById("nama").value;
+
+if(namaPlayer==""){
+alert("Masukkan nama dulu!");
+return;
+}
+
+startMusic();
+
+document.getElementById("start").style.display="none";
+document.getElementById("soal").style.display="block";
+
+bicara("Halo "+namaPlayer+" game dimulai");
+
+tampil();
+
+}
+
+function tampil(){
+
+if(nomor>=soal.length){
+hasil();
+return;
+}
+
+let level="Mudah";
+
+if(nomor>=7) level="Sedang";
+if(nomor>=14) level="Sulit";
+
+document.getElementById("level").innerText="Level: "+level;
+
+let s=soal[nomor];
+
+document.getElementById("gambar").src=s.g;
+
+let t="";
+
+for(let i=0;i<s.o.length;i++){
+t+="<button onclick=\"jawab('"+s.o[i]+"')\">"+s.o[i]+"</button>";
+}
+
+document.getElementById("opsi").innerHTML=t;
+
+}
+
+function jawab(p){
+
+clickSound();
+
+let s=soal[nomor];
+
+if(p==s.j){
+
+benar++;
+
+document.getElementById("gambar").style.transform="scale(1.2)";
+
+bicara("Benar");
+
+setTimeout(()=>{
+document.getElementById("gambar").style.transform="scale(1)";
+},300);
+
+}else{
+
+bicara("Salah");
+
+}
+
+nomor++;
+
+setTimeout(tampil,900);
+
+}
+
+function hasil(){
+
+clearInterval(musicTimer);
+
+let pesan="";
+
+if(benar>=17){
+pesan=namaPlayer+" pintar";
+}
+
+else if(benar>=12){
+pesan=namaPlayer+" belajar lagi";
+}
+
+else{
+pesan=namaPlayer+" bodoh";
+}
+
+bicara(pesan);
+
+document.getElementById("game").innerHTML=
+"<h2>Game Selesai</h2>"+
+"<h3>Jawaban benar: "+benar+" dari 20</h3>"+
+"<h2>"+pesan+"</h2>"+
+"<button onclick='location.reload()'>Main Lagi</button>";
+
+}
+
+</script>
+</head>
+
+<body>
+
+<h1>🌍 Iman Tebakan Bendera</h1>
+
+<div id="game">
+
+<div id="start">
+
+<input id="nama" placeholder="Masukkan nama anda">
+
+<br><br>
+
+<button onclick="startGame()">START GAME</button>
+
+</div>
+
+<div id="soal" style="display:none">
+
+<div id="level"></div>
+
+<img id="gambar">
+
+<div id="opsi"></div>
+
+</div>
+
+</div>
+
+</body>
+</html>
